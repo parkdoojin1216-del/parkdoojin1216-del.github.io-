@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타일 물량 & mm 단위 정밀 계산기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; }
+    input[type="range"] { accent-color: #0d9488; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen py-6 px-4">
+
+  <main class="max-w-xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+    
+    <!-- 상단 제목 영역 -->
+    <header class="bg-gradient-to-r from-teal-700 to-emerald-800 text-white p-6 text-center">
+      <span class="inline-block bg-white/20 text-xs font-bold px-3 py-1 rounded-full mb-2">
+        인테리어 현장용 · mm 단위 정밀 산출
+      </span>
+      <h1 class="text-2xl font-extrabold tracking-tight">
+        타일 박스 & 0.9mm~2mm 메지 계산기
+      </h1>
+      <p class="text-teal-100 text-sm mt-1">
+        공간 치수를 mm로 입력하고 0.9mm~2mm 타이트한 메지 간격까지 완벽하게 계산하세요.
+      </p>
+    </header>
+
+    <!-- 구글 애드센스 광고 자리 -->
+    <div class="bg-slate-50 border-b border-slate-200 py-2.5 px-4 text-center text-xs text-slate-400">
+      [광고 영역] 구글 애드센스 배너가 들어가는 자리
+    </div>
+
+    <div class="p-6 space-y-6">
+
+      <!-- [1층] 시공할 공간 가로·세로 mm 입력 (신규!) -->
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+        <div class="flex justify-between items-center">
+          <label class="font-extrabold text-slate-800">1. 시공할 공간 크기 (단위: 밀리미터 mm)</label>
+          <span class="text-xs font-bold text-teal-700 bg-teal-100 px-2.5 py-1 rounded-lg" id="area-display">
+            면적: 7.20㎡ (약 2.2평)
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="text-xs text-slate-500 font-semibold block mb-1">가로 길이 (mm)</span>
+            <input type="number" id="room-width-mm" value="3000" step="10" min="100" oninput="calcTile()" 
+              class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-lg text-center focus:outline-none focus:border-teal-600">
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 font-semibold block mb-1">세로(높이) 길이 (mm)</span>
+            <input type="number" id="room-height-mm" value="2400" step="10" min="100" oninput="calcTile()" 
+              class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-lg text-center focus:outline-none focus:border-teal-600">
+          </div>
+        </div>
+        <p class="text-xs text-slate-400">💡 팁: 3미터라면 3000으로 입력해 주세요. (자동으로 평수 환산)</p>
+      </div>
+
+      <!-- [2층] 타일 규격 선택 -->
+      <div>
+        <label class="block font-extrabold text-slate-800 mb-2">2. 사용할 타일 규격 선택 (mm)</label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" onclick="selectTile(600, 600, 4, 32000, this)" class="tile-btn border-2 border-teal-600 bg-teal-50 text-teal-800 font-bold p-3 rounded-xl text-left transition">
+            <div class="text-sm">600 × 600 (포세린 바닥)</div>
+            <div class="text-xs font-normal text-slate-500 mt-0.5">1박스 = 4장 (1.44㎡)</div>
+          </button>
+          <button type="button" onclick="selectTile(300, 600, 8, 26000, this)" class="tile-btn border border-slate-200 hover:border-teal-400 p-3 rounded-xl text-left font-medium transition">
+            <div class="text-sm">300 × 600 (욕실 벽타일)</div>
+            <div class="text-xs font-normal text-slate-500 mt-0.5">1박스 = 8장 (1.44㎡)</div>
+          </button>
+          <button type="button" onclick="selectTile(300, 300, 16, 22000, this)" class="tile-btn border border-slate-200 hover:border-teal-400 p-3 rounded-xl text-left font-medium transition">
+            <div class="text-sm">300 × 300 (욕실 바닥)</div>
+            <div class="text-xs font-normal text-slate-500 mt-0.5">1박스 = 16장 (1.44㎡)</div>
+          </button>
+          <button type="button" onclick="selectTile(200, 200, 25, 25000, this)" class="tile-btn border border-slate-200 hover:border-teal-400 p-3 rounded-xl text-left font-medium transition">
+            <div class="text-sm">200 × 200 (현관 포인트)</div>
+            <div class="text-xs font-normal text-slate-500 mt-0.5">1박스 = 25장 (1.00㎡)</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- [3층] 메지(줄눈) 두께 설정 (0.9mm ~ 2.0mm 정밀 조절) -->
+      <div class="bg-teal-50/60 p-4 rounded-2xl border border-teal-100 space-y-3">
+        <div class="flex justify-between items-center">
+          <label class="font-extrabold text-slate-800">3. 메지(줄눈) 두께 설정 (0.9mm ~ 2.0mm)</label>
+          <span class="text-sm font-extrabold text-teal-700 bg-teal-100 px-3 py-1 rounded-lg" id="joint-display">
+            1.5 mm
+          </span>
+        </div>
+        <input type="range" id="joint-size" min="0.9" max="2.0" step="0.1" value="1.5" oninput="calcTile()" 
+          class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>0.9mm (초미세 줄눈)</span>
+          <span>1.5mm (일반 포세린/각)</span>
+          <span>2.0mm (표준 간격)</span>
+        </div>
+      </div>
+
+      <!-- 로스율(여유분) 선택 -->
+      <div>
+        <label class="block font-extrabold text-slate-800 mb-2">4. 재단 손실(로스율) 여유분</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="selectLoss(1.05, this)" class="loss-btn border border-slate-200 py-2.5 rounded-xl text-xs font-medium">
+            5% (단순 사각형)
+          </button>
+          <button type="button" onclick="selectLoss(1.10, this)" class="loss-btn border-2 border-teal-600 bg-teal-50 text-teal-800 font-bold py-2.5 rounded-xl text-xs">
+            10% (표준 권장)
+          </button>
+          <button type="button" onclick="selectLoss(1.15, this)" class="loss-btn border border-slate-200 py-2.5 rounded-xl text-xs font-medium">
+            15% (복잡한 구조)
+          </button>
+        </div>
+      </div>
+
+      <!-- [5층] 자동 계산 결과 박스 -->
+      <div class="bg-slate-900 text-white p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <div>
+            <span class="text-xs text-teal-400 font-bold block">로스율 포함 안전 주문 수량</span>
+            <span class="text-xl font-extrabold">총 주문해야 할 타일</span>
+          </div>
+          <div class="text-right">
+            <span id="res-boxes" class="text-3xl font-extrabold text-amber-400">6 박스</span>
+            <span id="res-pieces" class="block text-xs text-slate-400">낱장 기준 약 22장 필요</span>
+          </div>
+        </div>
+
+        <!-- 부자재 자동 산출 -->
+        <div class="grid grid-cols-2 gap-3 bg-slate-800/80 p-3.5 rounded-xl text-xs">
+          <div>
+            <span class="text-slate-400 block">🧱 압착시멘트/타일본드(20kg)</span>
+            <span id="res-glue" class="font-bold text-white text-sm mt-0.5 block">약 2 포(통)</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">✨ 줄눈제/메지 (2kg 봉지) <span id="res-joint-note" class="text-teal-400 text-[10px]">(1.5mm 반영)</span></span>
+            <span id="res-grout" class="font-bold text-white text-sm mt-0.5 block">약 2 봉지</span>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-baseline pt-1">
+          <span class="text-sm text-slate-300">예상 타일 자재비 합계</span>
+          <span id="res-cost" class="text-2xl font-extrabold text-white">약 192,000원</span>
+        </div>
+      </div>
+
+      <!-- [6층] 수익화 연결 버튼 -->
+      <div class="space-y-3 pt-2">
+        <button onclick="goMaterialShop()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold py-3.5 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+          🛒 계산된 타일·부자재 로켓배송 최저가 확인하기 →
+        </button>
+
+        <div class="bg-teal-50 border-2 border-teal-200 p-4 rounded-2xl space-y-2.5">
+          <div class="text-center">
+            <h3 class="font-extrabold text-base text-slate-800">전문가 시공 의뢰 및 견적 상담</h3>
+            <p class="text-xs text-slate-600">입력하신 mm 단위 치수 그대로 정확한 시공 견적을 받아보세요.</p>
+          </div>
+          <div class="flex gap-2">
+            <input type="tel" id="client-phone" placeholder="연락처 (예: 010-1234-5678)" class="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-teal-600">
+            <button onclick="requestQuote()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2.5 rounded-xl text-sm whitespace-nowrap transition">
+              상담 신청
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const MY_CONFIG = {
+      affiliateUrl: "https://www.coupang.com/", // 제휴 링크 또는 자사몰 주소
+    };
+
+    let state = {
+      tileW: 600,
+      tileH: 600,
+      pcsPerBox: 4,
+      pricePerBox: 32000,
+      lossRate: 1.10
+    };
+
+    function selectTile(w, h, pcs, price, btn) {
+      state.tileW = w;
+      state.tileH = h;
+      state.pcsPerBox = pcs;
+      state.pricePerBox = price;
+
+      document.querySelectorAll('.tile-btn').forEach(b => {
+        b.className = "tile-btn border border-slate-200 hover:border-teal-400 p-3 rounded-xl text-left font-medium transition";
+      });
+      btn.className = "tile-btn border-2 border-teal-600 bg-teal-50 text-teal-800 font-bold p-3 rounded-xl text-left transition";
+      calcTile();
+    }
+
+    function selectLoss(rate, btn) {
+      state.lossRate = rate;
+      document.querySelectorAll('.loss-btn').forEach(b => {
+        b.className = "loss-btn border border-slate-200 py-2.5 rounded-xl text-xs font-medium";
+      });
+      btn.className = "loss-btn border-2 border-teal-600 bg-teal-50 text-teal-800 font-bold py-2.5 rounded-xl text-xs";
+      calcTile();
+    }
+
+    function calcTile() {
+      // mm 단위로 입력받은 값을 미터(m)로 변환하여 면적 계산
+      const wMm = parseFloat(document.getElementById('room-width-mm').value) || 0;
+      const hMm = parseFloat(document.getElementById('room-height-mm').value) || 0;
+      const jointMm = parseFloat(document.getElementById('joint-size').value) || 1.5;
+
+      document.getElementById('joint-display').innerText = jointMm.toFixed(1) + " mm";
+      document.getElementById('res-joint-note').innerText = `(${jointMm}mm 반영)`;
+
+      const areaM2 = (wMm / 1000) * (hMm / 1000);
+      const pyeong = areaM2 / 3.3058;
+      document.getElementById('area-display').innerText = `면적: ${areaM2.toFixed(2)}㎡ (약 ${pyeong.toFixed(1)}평)`;
+
+      // 타일 장수 계산 (타일 규격 mm + 메지 mm 반영)
+      const effectiveW = (state.tileW + jointMm) / 1000;
+      const effectiveH = (state.tileH + jointMm) / 1000;
+      const oneTileRealArea = effectiveW * effectiveH;
+
+      const exactPieces = Math.ceil((areaM2 / oneTileRealArea) * state.lossRate);
+      
+      const totalBoxes = Math.ceil(exactPieces / state.pcsPerBox);
+      const totalCost = totalBoxes * state.pricePerBox;
+
+      // 부자재 산출
+      const glueCount = Math.max(1, Math.ceil(areaM2 / 4.5));
+      const groutFactor = (jointMm / 1.5) * (600 / ((state.tileW + state.tileH) / 2));
+      const groutCount = Math.max(1, Math.ceil((areaM2 / 4.0) * groutFactor));
+
+      // 화면 업데이트
+      document.getElementById('res-boxes').innerText = `${totalBoxes} 박스`;
+      document.getElementById('res-pieces').innerText = `로스율 포함 최소 ${exactPieces}장 필요 (총 ${totalBoxes * state.pcsPerBox}장 배송)`;
+      document.getElementById('res-glue').innerText = `약 ${glueCount} 포(통)`;
+      document.getElementById('res-grout').innerText = `약 ${groutCount} 봉지`;
+      document.getElementById('res-cost').innerText = `약 ${totalCost.toLocaleString()}원`;
+    }
+
+    function goMaterialShop() {
+      window.open(MY_CONFIG.affiliateUrl, '_blank');
+    }
+
+    function requestQuote() {
+      const phone = document.getElementById('client-phone').value.trim();
+      const area = document.getElementById('area-display').innerText;
+      const boxes = document.getElementById('res-boxes').innerText;
+      if (!phone) {
+        alert("상담받으실 연락처를 입력해 주세요!");
+        return;
+      }
+      alert(`[시공 문의 접수 완료]\n연락처: ${phone}\n시공 면적: ${area}\n필요 물량: ${boxes}\n\n담당자가 확인 후 빠르게 연락드리겠습니다!`);
+    }
+
+    calcTile();
+  </script>
+</body>
+</html>
